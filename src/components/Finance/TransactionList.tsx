@@ -118,22 +118,22 @@ export const TransactionList: React.FC<TransactionListProps> = ({
 
   if (expenseTransactions.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-        <div className="text-gray-400 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center transition-colors">
+        <div className="text-gray-400 dark:text-gray-500 mb-4">
           <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No transactions yet</h3>
-        <p className="text-gray-500">Start by adding your first transaction!</p>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No transactions yet</h3>
+        <p className="text-gray-500 dark:text-gray-400">Start by adding your first transaction!</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Transaction History</h3>
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Transaction History</h3>
         {expenseTransactions.length > 0 && (
           <Button
             variant="danger"
@@ -148,32 +148,32 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       </div>
       
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Item
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Quantity
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Amount
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Date
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {Object.entries(groupedTransactions).map(([monthYear, { transactions: monthTransactions, isOld }]) => (
               <React.Fragment key={monthYear}>
                 {isOld && (
-                  <tr className="bg-gray-50 cursor-pointer" onClick={() => toggleSection(monthYear)}>
-                    <td colSpan={5} className="px-6 py-3 text-sm font-medium text-gray-700">
+                  <tr className="bg-gray-50 dark:bg-gray-700 cursor-pointer" onClick={() => toggleSection(monthYear)}>
+                    <td colSpan={5} className="px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                       <div className="flex items-center justify-between">
                         <span>
                           {new Date(monthYear + '-01').toLocaleDateString('en-US', { 
@@ -191,13 +191,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                   </tr>
                 )}
                 {(!isOld || !collapsedSections.has(monthYear)) && monthTransactions.map((transaction) => (
-                  <tr key={transaction.id} className="hover:bg-gray-50">
+                  <tr key={transaction.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {transaction.item_name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {transaction.quantity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -205,14 +205,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         -{formatCurrency(transaction.total_cost)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {formatDateTime(transaction.created_at)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleDeleteTransaction(transaction.id)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 dark:hover:text-red-500"
                         >
                           <TrashIcon className="h-4 w-4" />
                         </button>
@@ -224,13 +224,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             ))}
             
             {/* Balance Row */}
-            <tr className="bg-blue-50 border-t-2 border-blue-200">
+            <tr className="bg-blue-50 dark:bg-blue-900 border-t-2 border-blue-200 dark:border-blue-700">
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-bold text-blue-900">
+                <div className="text-sm font-bold text-blue-900 dark:text-blue-100">
                   Current Balance
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
                 -
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
@@ -238,10 +238,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                   {formatCurrency(balance)}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
                 -
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
                 -
               </td>
             </tr>
@@ -250,9 +250,9 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       </div>
       
       {showPagination && totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-200">
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">
+            <div className="text-sm text-gray-700 dark:text-gray-300">
               Showing {startIndex + 1} to {Math.min(endIndex, expenseTransactions.length)} of {expenseTransactions.length} transactions
             </div>
             
@@ -271,14 +271,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({
               {getPageNumbers().map((page, index) => (
                 <React.Fragment key={index}>
                   {page === '...' ? (
-                    <span className="px-3 py-1 text-gray-500">...</span>
+                    <span className="px-3 py-1 text-gray-500 dark:text-gray-400">...</span>
                   ) : (
                     <button
                       onClick={() => setCurrentPage(page as number)}
                       className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
                         currentPage === page
                           ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                     >
                       {page}

@@ -18,10 +18,10 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const variants = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white shadow-md',
-    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900 shadow-sm',
-    danger: 'bg-red-600 hover:bg-red-700 text-white shadow-md',
-    ghost: 'bg-transparent hover:bg-gray-100 text-gray-700',
+    primary: 'bg-blue-600 hover:bg-blue-700 text-white shadow-md dark:bg-blue-700 dark:hover:bg-blue-600',
+    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900 shadow-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100',
+    danger: 'bg-red-600 hover:bg-red-700 text-white shadow-md dark:bg-red-700 dark:hover:bg-red-600',
+    ghost: 'bg-transparent hover:bg-gray-100 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-300',
   };
 
   const sizes = {
