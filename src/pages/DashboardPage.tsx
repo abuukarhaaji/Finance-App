@@ -238,21 +238,21 @@ export const DashboardPage: React.FC = () => {
   const selectedPeriodLabel = periodOptions.find(p => p.value === selectedPeriod)?.label || 'Select Period';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4 transition-colors">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Financial Dashboard
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             View your spending patterns and financial insights
           </p>
         </div>
 
         {/* Time Filter */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8 transition-colors">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Time Period</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Time Period</h2>
             <Button
               variant="secondary"
               size="sm"
@@ -273,7 +273,7 @@ export const DashboardPage: React.FC = () => {
                 className={`p-3 rounded-lg text-sm font-medium transition-colors ${
                   selectedPeriod === period.value
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 {period.label}
@@ -286,14 +286,14 @@ export const DashboardPage: React.FC = () => {
             <div className="relative">
               <button
                 onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
-                className="w-full flex items-center justify-between p-3 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                className="w-full flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 <span>{selectedPeriodLabel}</span>
                 <ChevronDownIcon className={`h-5 w-5 transition-transform ${showPeriodDropdown ? 'rotate-180' : ''}`} />
               </button>
               
               {showPeriodDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
                   {periodOptions.map(period => (
                     <button
                       key={period.value}
@@ -301,10 +301,10 @@ export const DashboardPage: React.FC = () => {
                         setSelectedPeriod(period.value);
                         setShowPeriodDropdown(false);
                       }}
-                      className={`w-full text-left p-3 text-sm font-medium transition-colors hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg ${
+                      className={`w-full text-left p-3 text-sm font-medium transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 first:rounded-t-lg last:rounded-b-lg ${
                         selectedPeriod === period.value
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'text-gray-700'
+                          ? 'bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                          : 'text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       {period.label}
@@ -318,25 +318,25 @@ export const DashboardPage: React.FC = () => {
           {selectedPeriod === 'custom' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Start Date
                 </label>
                 <input
                   type="date"
                   value={customStartDate}
                   onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   End Date
                 </label>
                 <input
                   type="date"
                   value={customEndDate}
                   onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -355,58 +355,58 @@ export const DashboardPage: React.FC = () => {
         {/* Summary Cards - Now comes AFTER Transaction List */}
         {spendingSummary && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Spent</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Spent</p>
                   <p className="text-2xl font-bold text-red-600">
                     {formatCurrency(spendingSummary.total_spent)}
                   </p>
                 </div>
-                <div className="p-3 bg-red-100 rounded-lg">
+                <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg">
                   <ChartBarIcon className="h-6 w-6 text-red-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Deposits</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Deposits</p>
                   <p className="text-2xl font-bold text-green-600">
                     {formatCurrency(spendingSummary.total_deposits)}
                   </p>
                 </div>
-                <div className="p-3 bg-green-100 rounded-lg">
+                <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
                   <ChartBarIcon className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Transactions</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Transactions</p>
                   <p className="text-2xl font-bold text-blue-600">
                     {spendingSummary.transaction_count}
                   </p>
                 </div>
-                <div className="p-3 bg-blue-100 rounded-lg">
+                <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
                   <CalendarDaysIcon className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Avg. Transaction</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Transaction</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {formatCurrency(spendingSummary.avg_transaction)}
                   </p>
                 </div>
-                <div className="p-3 bg-gray-100 rounded-lg">
-                  <ChartBarIcon className="h-6 w-6 text-gray-600" />
+                <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <ChartBarIcon className="h-6 w-6 text-gray-600 dark:text-gray-400" />
                 </div>
               </div>
             </div>
@@ -415,8 +415,8 @@ export const DashboardPage: React.FC = () => {
 
         {/* Daily Spending Chart - Now comes LAST */}
         {chartData.length > 0 && (
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-colors">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Daily Spending
             </h2>
             <div className="h-80">

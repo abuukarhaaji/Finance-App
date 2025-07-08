@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { Button } from '../ui/Button';
+import { DarkModeToggle } from '../ui/DarkModeToggle';
 import { AddFundsModal } from '../Finance/AddFundsModal';
 import { 
   BanknotesIcon, 
@@ -20,14 +21,14 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="bg-white shadow-lg border-b border-gray-200">
+      <header className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Desktop Layout */}
           <div className="hidden md:flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center space-x-2">
               <BanknotesIcon className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">FinanceTracker</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">FinanceTracker</span>
             </div>
 
             {/* Navigation */}
@@ -35,7 +36,7 @@ export const Header: React.FC = () => {
               {!isNewTransactionPage && (
                 <Link
                   to="/"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   <PlusIcon className="h-4 w-4" />
                   <span>New Transaction</span>
@@ -44,7 +45,7 @@ export const Header: React.FC = () => {
               {!isDashboardPage && (
                 <Link
                   to="/dashboard"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   <ChartBarIcon className="h-4 w-4" />
                   <span>Dashboard</span>
@@ -56,7 +57,7 @@ export const Header: React.FC = () => {
             <div className="flex items-center space-x-4">
               {/* Balance Display */}
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-600">Balance:</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Balance:</span>
                 <span className={`text-lg font-bold ${balance <= 0 ? 'text-red-600' : 'text-green-600'}`}>
                   {formatCurrency(balance)}
                 </span>
@@ -72,6 +73,9 @@ export const Header: React.FC = () => {
                   Add Funds
                 </Button>
               )}
+              
+              {/* Dark Mode Toggle */}
+              <DarkModeToggle />
             </div>
           </div>
 
@@ -81,14 +85,15 @@ export const Header: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <BanknotesIcon className="h-7 w-7 text-blue-600" />
-                <span className="text-lg font-bold text-gray-900">FinanceTracker</span>
+                <span className="text-lg font-bold text-gray-900 dark:text-white">FinanceTracker</span>
               </div>
               
               <div className="flex items-center space-x-2">
-                <span className="text-xs font-medium text-gray-600">Balance:</span>
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Balance:</span>
                 <span className={`text-sm font-bold ${balance <= 0 ? 'text-red-600' : 'text-green-600'}`}>
                   {formatCurrency(balance)}
                 </span>
+                <DarkModeToggle />
               </div>
             </div>
 
@@ -99,7 +104,7 @@ export const Header: React.FC = () => {
                 <>
                   <Link
                     to="/dashboard"
-                    className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     <ChartBarIcon className="h-4 w-4" />
                     <span>Dashboard</span>
@@ -119,7 +124,7 @@ export const Header: React.FC = () => {
                 // Dashboard page: Show only New Transaction
                 <Link
                   to="/"
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   <PlusIcon className="h-4 w-4" />
                   <span>New Transaction</span>

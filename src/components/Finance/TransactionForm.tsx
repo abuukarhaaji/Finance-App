@@ -67,9 +67,9 @@ export const TransactionForm: React.FC = () => {
   const canSubmit = formData.itemName && formData.unitCost && totalCost > 0 && totalCost <= balance;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-colors">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">New Transaction</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">New Transaction</h2>
         <Button
           variant="secondary"
           size="sm"
@@ -115,23 +115,23 @@ export const TransactionForm: React.FC = () => {
         </div>
         
         {/* Total Cost Display */}
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 transition-colors">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-600">Total Cost:</span>
-            <span className={`text-lg font-bold ${totalCost > balance ? 'text-red-600' : 'text-gray-900'}`}>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Cost:</span>
+            <span className={`text-lg font-bold ${totalCost > balance ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
               {formatCurrency(totalCost)}
             </span>
           </div>
           {totalCost > balance && (
-            <p className="text-sm text-red-600 mt-1">
+            <p className="text-sm text-red-600 dark:text-red-400 mt-1">
               Insufficient funds. Current balance: {formatCurrency(balance)}
             </p>
           )}
         </div>
         
         {validationError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-sm text-red-600">{validationError}</p>
+          <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-3 transition-colors">
+            <p className="text-sm text-red-600 dark:text-red-400">{validationError}</p>
           </div>
         )}
         
