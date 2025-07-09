@@ -5,7 +5,7 @@ import { Button } from '../ui/Button';
 import { 
   TrashIcon, 
   ChevronDownIcon, 
-  ChevronUpIcon 
+  ChevronUpIcon ,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import { useFinance } from '../../contexts/FinanceContext';
