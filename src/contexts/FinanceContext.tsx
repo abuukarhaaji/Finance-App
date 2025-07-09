@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Transaction, SpendingSummary } from '../types';
+import { useAuth } from './AuthContext';
+import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface FinanceContextType {
@@ -29,10 +31,17 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
-    loadTransactions();
-  }, []);
+    if (user) {
+      loadTransactions();
+    } else {
+      // Clear data when user logs out
+      setTransactions([]);
+      setBalance(0);
+    }
+  }, [user]);
 
   const calculateBalance = (transactions: Transaction[]): number => {
     return transactions.reduce((total, transaction) => {
@@ -44,38 +53,89 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }, 0);
   };
 
-  const loadTransactions = () => {
+  const loadTransactions = async () => {
+    if (!user) return;
+    
     try {
-      const savedTransactions = localStorage.getItem('finance-transactions');
-      if (savedTransactions) {
-        const parsedTransactions = JSON.parse(savedTransactions);
-        setTransactions(parsedTransactions);
-        setBalance(calculateBalance(parsedTransactions));
-      }
-    } catch (error) {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const transactionData = data || [];
+      setTransactions(transactionData);
+      setBalance(calculateBalance(transactionData));
+    } catch (error: any) {
       console.error('Error loading transactions:', error);
       toast.error('Failed to load transactions');
+      
+      // Fallback to localStorage for development
+      try {
+        const savedTransactions = localStorage.getItem(`finance-transactions-${user.id}`);
+        if (savedTransactions) {
+          const parsedTransactions = JSON.parse(savedTransactions);
+          setTransactions(parsedTransactions);
+          setBalance(calculateBalance(parsedTransactions));
+        }
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const saveTransactions = (transactions: Transaction[]) => {
+  const saveTransactionsLocally = (transactions: Transaction[]) => {
+    if (!user) return;
+    
     try {
-      localStorage.setItem('finance-transactions', JSON.stringify(transactions));
+      localStorage.setItem(`finance-transactions-${user.id}`, JSON.stringify(transactions));
     } catch (error) {
       console.error('Error saving transactions:', error);
-      toast.error('Failed to save transactions');
     }
   };
 
   const refreshData = async () => {
-    loadTransactions();
+    await loadTransactions();
   };
 
   const addTransaction = async (transaction: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'total_cost'>) => {
+    if (!user) {
+      toast.error('Please sign in to add transactions');
+      return;
+    }
+
     try {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert([{
+          user_id: user.id,
+          ...transaction,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const updatedTransactions = [data, ...transactions];
+      setTransactions(updatedTransactions);
+      setBalance(calculateBalance(updatedTransactions));
+      saveTransactionsLocally(updatedTransactions);
+      
+      toast.success(transaction.type === 'deposit' ? 'Funds added successfully!' : 'Transaction added successfully!');
+    } catch (error: any) {
+      console.error('Error adding transaction:', error);
+      
+      // Fallback to localStorage for development
       const newTransaction: Transaction = {
         id: crypto.randomUUID(),
-        user_id: 'local-user',
+        user_id: user.id,
         ...transaction,
         total_cost: transaction.quantity * transaction.unit_cost,
         created_at: new Date().toISOString(),
@@ -85,18 +145,46 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const updatedTransactions = [newTransaction, ...transactions];
       setTransactions(updatedTransactions);
       setBalance(calculateBalance(updatedTransactions));
-      saveTransactions(updatedTransactions);
+      saveTransactionsLocally(updatedTransactions);
       
       toast.success(transaction.type === 'deposit' ? 'Funds added successfully!' : 'Transaction added successfully!');
-    } catch (error: any) {
-      console.error('Error adding transaction:', error);
-      toast.error('Failed to add transaction');
-      throw error;
+      toast.error('Using offline mode - data saved locally');
+    } finally {
+      setLoading(false);
     }
   };
 
   const updateTransaction = async (id: string, updates: Partial<Transaction>) => {
+    if (!user) {
+      toast.error('Please sign in to update transactions');
+      return;
+    }
+
     try {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('transactions')
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const updatedTransactions = transactions.map(transaction => 
+        transaction.id === id ? data : transaction
+      );
+      
+      setTransactions(updatedTransactions);
+      setBalance(calculateBalance(updatedTransactions));
+      saveTransactionsLocally(updatedTransactions);
+      toast.success('Transaction updated successfully');
+    } catch (error: any) {
+      console.error('Error updating transaction:', error);
+      
+      // Fallback to localStorage for development
       const updatedTransactions = transactions.map(transaction => {
         if (transaction.id === id) {
           const updated = { 
@@ -115,26 +203,48 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       setTransactions(updatedTransactions);
       setBalance(calculateBalance(updatedTransactions));
-      saveTransactions(updatedTransactions);
+      saveTransactionsLocally(updatedTransactions);
       toast.success('Transaction updated successfully');
-    } catch (error: any) {
-      console.error('Error updating transaction:', error);
-      toast.error('Failed to update transaction');
-      throw error;
+      toast.error('Using offline mode - data saved locally');
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteTransaction = async (id: string) => {
+    if (!user) {
+      toast.error('Please sign in to delete transactions');
+      return;
+    }
+
     try {
+      setLoading(true);
+      
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
       const updatedTransactions = transactions.filter(transaction => transaction.id !== id);
       setTransactions(updatedTransactions);
       setBalance(calculateBalance(updatedTransactions));
-      saveTransactions(updatedTransactions);
+      saveTransactionsLocally(updatedTransactions);
       toast.success('Transaction deleted successfully');
     } catch (error: any) {
       console.error('Error deleting transaction:', error);
-      toast.error('Failed to delete transaction');
-      throw error;
+      
+      // Fallback to localStorage for development
+      const updatedTransactions = transactions.filter(transaction => transaction.id !== id);
+      setTransactions(updatedTransactions);
+      setBalance(calculateBalance(updatedTransactions));
+      saveTransactionsLocally(updatedTransactions);
+      toast.success('Transaction deleted successfully');
+      toast.error('Using offline mode - data saved locally');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -186,13 +296,18 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const generateSampleData = async () => {
+    if (!user) {
+      toast.error('Please sign in to generate sample data');
+      return;
+    }
+
     try {
       setLoading(true);
       
       // First add some initial funds
       const initialDeposit: Transaction = {
         id: crypto.randomUUID(),
-        user_id: 'local-user',
+        user_id: user.id,
         item_name: 'Initial Deposit',
         description: 'Starting funds',
         quantity: 1,
@@ -230,7 +345,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         const transaction: Transaction = {
           id: crypto.randomUUID(),
-          user_id: 'local-user',
+          user_id: user.id,
           item_name: randomItem,
           description: '',
           quantity: 1,
@@ -250,7 +365,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       setTransactions(sampleTransactions);
       setBalance(calculateBalance(sampleTransactions));
-      saveTransactions(sampleTransactions);
+      saveTransactionsLocally(sampleTransactions);
       
       toast.success('Sample data generated successfully!');
     } catch (error: any) {

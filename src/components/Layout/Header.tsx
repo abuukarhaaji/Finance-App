@@ -1,19 +1,26 @@
 import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { DarkModeToggle } from '../ui/DarkModeToggle';
 import { AddFundsModal } from '../Finance/AddFundsModal';
+import { AuthModal } from '../Auth/AuthModal';
 import { 
   BanknotesIcon, 
   ChartBarIcon, 
-  PlusIcon
+  PlusIcon,
+  UserIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 import { formatCurrency } from '../../lib/utils';
 import { Link, useLocation } from 'react-router-dom';
 
 export const Header: React.FC = () => {
   const { balance } = useFinance();
+  const { user, signOut } = useAuth();
   const [addFundsModalOpen, setAddFundsModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const location = useLocation();
 
   const isNewTransactionPage = location.pathname === '/';
@@ -56,21 +63,63 @@ export const Header: React.FC = () => {
             {/* Right side */}
             <div className="flex items-center space-x-4">
               {/* Balance Display */}
-              <div className="flex items-center space-x-2">
+              {user && (
+                <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Balance:</span>
                 <span className={`text-lg font-bold ${balance <= 0 ? 'text-red-600' : 'text-green-600'}`}>
                   {formatCurrency(balance)}
                 </span>
-              </div>
+                </div>
+              )}
 
               {/* Add Funds Button - only show on New Transaction page */}
-              {isNewTransactionPage && (
+              {user && isNewTransactionPage && (
                 <Button
                   variant="primary"
                   size="sm"
                   onClick={() => setAddFundsModalOpen(true)}
                 >
                   Add Funds
+                </Button>
+              )}
+
+              {/* User Menu */}
+              {user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <UserIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      {user.email?.split('@')[0]}
+                    </span>
+                  </button>
+                  
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50">
+                      <div className="p-2">
+                        <button
+                          onClick={() => {
+                            signOut();
+                            setShowUserMenu(false);
+                          }}
+                          className="w-full flex items-center space-x-2 p-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                        >
+                          <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setAuthModalOpen(true)}
+                >
+                  Sign In
                 </Button>
               )}
               
@@ -89,17 +138,21 @@ export const Header: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-2">
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Balance:</span>
+                {user && (
+                  <>
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Balance:</span>
                 <span className={`text-sm font-bold ${balance <= 0 ? 'text-red-600' : 'text-green-600'}`}>
                   {formatCurrency(balance)}
                 </span>
+                  </>
+                )}
                 <DarkModeToggle />
               </div>
             </div>
 
             {/* Second Line: Conditional Navigation */}
             <div className="flex items-center justify-center space-x-4">
-              {isNewTransactionPage ? (
+              {user && isNewTransactionPage ? (
                 // New Transaction page: Show Dashboard + Add Funds
                 <>
                   <Link
@@ -120,7 +173,7 @@ export const Header: React.FC = () => {
                     <span>Add Funds</span>
                   </Button>
                 </>
-              ) : (
+              ) : user ? (
                 // Dashboard page: Show only New Transaction
                 <Link
                   to="/"
@@ -129,6 +182,15 @@ export const Header: React.FC = () => {
                   <PlusIcon className="h-4 w-4" />
                   <span>New Transaction</span>
                 </Link>
+              ) : (
+                // Not signed in: Show sign in button
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setAuthModalOpen(true)}
+                >
+                  Sign In
+                </Button>
               )}
             </div>
           </div>
@@ -136,6 +198,11 @@ export const Header: React.FC = () => {
       </header>
 
       <AddFundsModal isOpen={addFundsModalOpen} onClose={() => setAddFundsModalOpen(false)} />
+      <AuthModal 
+        isOpen={authModalOpen} 
+        onClose={() => setAuthModalOpen(false)} 
+        initialMode="signin"
+      />
     </>
   );
 };
