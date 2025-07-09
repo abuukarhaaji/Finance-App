@@ -18,7 +18,7 @@ interface TransactionListProps {
 
 export const TransactionList: React.FC<TransactionListProps> = ({
   transactions,
-            className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+  showPagination = true,
   itemsPerPage = 15,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
