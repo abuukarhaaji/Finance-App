@@ -7,6 +7,7 @@ import {
   ChevronDownIcon, 
   ChevronUpIcon 
   MagnifyingGlassIcon
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import { useFinance } from '../../contexts/FinanceContext';
 
