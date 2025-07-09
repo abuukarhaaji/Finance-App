@@ -73,7 +73,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast.success('Account created successfully! You can now sign in.');
     } catch (error: any) {
-      console.error('Sign up error:', error);
+      // Only log unexpected errors to console, not user-friendly handled cases
+      if (!error.message?.includes('User already registered') && !error.message?.includes('user_already_exists')) {
+        console.error('Sign up error:', error);
+      }
       
       // Handle specific error cases with more helpful messages
       if (error.message?.includes('User already registered') || error.message?.includes('user_already_exists')) {
