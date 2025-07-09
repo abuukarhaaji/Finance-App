@@ -74,7 +74,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.success('Account created successfully! You can now sign in.');
     } catch (error: any) {
       console.error('Sign up error:', error);
-      toast.error(error.message || 'Failed to create account');
+      
+      // Handle specific error cases with more helpful messages
+      if (error.message?.includes('User already registered') || error.message?.includes('user_already_exists')) {
+        toast.error('An account with this email already exists. Please sign in instead.');
+      } else {
+        toast.error(error.message || 'Failed to create account');
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -92,7 +98,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
     } catch (error: any) {
       console.error('Sign in error:', error);
-      toast.error(error.message || 'Failed to sign in');
+      
+      // Handle specific error cases with more helpful messages
+      if (error.message?.includes('Invalid login credentials') || error.message?.includes('invalid_credentials')) {
+        toast.error('Invalid email or password. Please check your credentials and try again.');
+      } else {
+        toast.error(error.message || 'Failed to sign in');
+      }
       throw error;
     } finally {
       setLoading(false);
