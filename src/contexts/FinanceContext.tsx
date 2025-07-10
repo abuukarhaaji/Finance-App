@@ -255,35 +255,64 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       setLoading(true);
       
-      // Delete all transactions in batch
-      const transactionIds = transactionsToDelete.map(t => t.id);
+      // Check if we're deleting ALL transactions or just filtered ones
+      const isDeleteAll = transactionsToDelete.length === transactions.length;
       
-      const { error } = await supabase
-        .from('transactions')
-        .delete()
-        .in('id', transactionIds)
-        .eq('user_id', user.id);
+      if (isDeleteAll) {
+        // Delete all transactions for the user
+        const { error } = await supabase
+          .from('transactions')
+          .delete()
+          .eq('user_id', user.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const updatedTransactions = transactions.filter(
-        transaction => !transactionIds.includes(transaction.id)
-      );
-      setTransactions(updatedTransactions);
-      setBalance(calculateBalance(updatedTransactions));
-      saveTransactionsLocally(updatedTransactions);
+        // Clear all data
+        setTransactions([]);
+        setBalance(0);
+        saveTransactionsLocally([]);
+      } else {
+        // Delete specific transactions in batch
+        const transactionIds = transactionsToDelete.map(t => t.id);
+        
+        const { error } = await supabase
+          .from('transactions')
+          .delete()
+          .in('id', transactionIds)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        const updatedTransactions = transactions.filter(
+          transaction => !transactionIds.includes(transaction.id)
+        );
+        setTransactions(updatedTransactions);
+        setBalance(calculateBalance(updatedTransactions));
+        saveTransactionsLocally(updatedTransactions);
+      }
+      
       toast.success('All transactions deleted successfully');
     } catch (error: any) {
       console.error('Error deleting transactions:', error);
       
       // Fallback to localStorage for development
-      const transactionIds = transactionsToDelete.map(t => t.id);
-      const updatedTransactions = transactions.filter(
-        transaction => !transactionIds.includes(transaction.id)
-      );
-      setTransactions(updatedTransactions);
-      setBalance(calculateBalance(updatedTransactions));
-      saveTransactionsLocally(updatedTransactions);
+      const isDeleteAll = transactionsToDelete.length === transactions.length;
+      
+      if (isDeleteAll) {
+        // Clear all data
+        setTransactions([]);
+        setBalance(0);
+        saveTransactionsLocally([]);
+      } else {
+        const transactionIds = transactionsToDelete.map(t => t.id);
+        const updatedTransactions = transactions.filter(
+          transaction => !transactionIds.includes(transaction.id)
+        );
+        setTransactions(updatedTransactions);
+        setBalance(calculateBalance(updatedTransactions));
+        saveTransactionsLocally(updatedTransactions);
+      }
+      
       toast.success('All transactions deleted successfully');
       toast.error('Using offline mode - data saved locally');
     } finally {
