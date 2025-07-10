@@ -27,7 +27,6 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'item' | 'amount'>('item');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
-  const { deleteTransaction, balance } = useFinance();
   const { deleteTransaction, deleteAllTransactions, balance } = useFinance();
 
   // Filter out deposits - only show expenses
