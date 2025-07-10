@@ -6,10 +6,12 @@ import {
   TrashIcon, 
   ChevronDownIcon, 
   ChevronUpIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  PencilIcon
 } from '@heroicons/react/24/outline';
 import { useFinance } from '../../contexts/FinanceContext';
-import toast from 'react-hot-toast';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { EditTransactionModal } from './EditTransactionModal';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -27,6 +29,20 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'item' | 'amount'>('item');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    loading?: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    loading: false,
+  });
+  const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
   const { deleteTransaction, deleteAllTransactions, balance } = useFinance();
 
   // Filter out deposits - only show expenses
@@ -55,26 +71,50 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     : filteredTransactions;
 
   const handleDeleteTransaction = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this transaction?')) {
-      await deleteTransaction(id);
-      toast.success('Transaction deleted successfully');
-      // Reset to page 1 if current page becomes empty
-      if (currentTransactions.length === 1 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Transaction',
+      message: 'Are you sure you want to delete this transaction? This action cannot be undone.',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, loading: true }));
+        try {
+          await deleteTransaction(id);
+          // Reset to page 1 if current page becomes empty
+          if (currentTransactions.length === 1 && currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+          }
+        } finally {
+          setConfirmDialog(prev => ({ ...prev, loading: false, isOpen: false }));
+        }
+      },
+    });
   };
 
   const handleDeleteAll = async () => {
     const transactionsToDelete = searchQuery.trim() ? filteredTransactions : transactions;
-    const confirmMessage = searchQuery.trim() 
+    const title = searchQuery.trim() ? 'Delete Filtered Transactions' : 'Delete All Transactions';
+    const message = searchQuery.trim() 
       ? `Are you sure you want to delete ${filteredTransactions.length} filtered transactions? This action cannot be undone.`
       : 'Are you sure you want to delete ALL transactions? This action cannot be undone.';
-      
-    if (window.confirm(confirmMessage)) {
-      await deleteAllTransactions(transactionsToDelete);
-      setCurrentPage(1);
-    }
+    
+    setConfirmDialog({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, loading: true }));
+        try {
+          await deleteAllTransactions(transactionsToDelete);
+          setCurrentPage(1);
+        } finally {
+          setConfirmDialog(prev => ({ ...prev, loading: false, isOpen: false }));
+        }
+      },
+    });
+  };
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditTransaction(transaction);
   };
 
   const handleSearchTypeChange = (type: 'item' | 'amount') => {
@@ -719,8 +759,16 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex space-x-2">
                         <button
+                          onClick={() => handleEditTransaction(transaction)}
+                          className="text-blue-600 hover:text-blue-700 dark:hover:text-blue-500"
+                          title="Edit transaction"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
                           onClick={() => handleDeleteTransaction(transaction.id)}
                           className="text-red-600 hover:text-red-700 dark:hover:text-red-500"
+                          title="Delete transaction"
                         >
                           <TrashIcon className="h-4 w-4" />
                         </button>
@@ -808,6 +856,23 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           </div>
         </div>
       )}
+      
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        loading={confirmDialog.loading}
+        confirmText="Delete"
+        variant="danger"
+      />
+      
+      <EditTransactionModal
+        isOpen={!!editTransaction}
+        onClose={() => setEditTransaction(null)}
+        transaction={editTransaction}
+      />
     </div>
   );
 };
