@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 export const TransactionForm: React.FC = () => {
   const [formData, setFormData] = useState({
     itemName: '',
-    quantity: 1,
+    quantity: '',
     unitCost: '',
   });
   const [loading, setLoading] = useState(false);
@@ -16,10 +16,17 @@ export const TransactionForm: React.FC = () => {
   
   const { addTransaction, validateTransaction, balance, generateSampleData, loading: contextLoading } = useFinance();
 
-  const totalCost = formData.quantity * parseFloat(formData.unitCost || '0');
+  const quantity = parseInt(formData.quantity) || 0;
+  const unitCost = parseFloat(formData.unitCost || '0');
+  const totalCost = quantity * unitCost;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (quantity <= 0) {
+      toast.error('Please enter a valid quantity');
+      return;
+    }
     
     if (totalCost <= 0) {
       toast.error('Please enter a valid amount');
@@ -40,7 +47,7 @@ export const TransactionForm: React.FC = () => {
       await addTransaction({
         item_name: formData.itemName,
         description: '',
-        quantity: formData.quantity,
+        quantity: quantity,
         unit_cost: parseFloat(formData.unitCost),
         category: 'other',
         type: 'expense',
@@ -49,7 +56,7 @@ export const TransactionForm: React.FC = () => {
       // Reset form
       setFormData({
         itemName: '',
-        quantity: 1,
+        quantity: '',
         unitCost: '',
       });
     } catch (error) {
@@ -64,7 +71,7 @@ export const TransactionForm: React.FC = () => {
     setValidationError('');
   };
 
-  const canSubmit = formData.itemName && formData.unitCost && totalCost > 0 && totalCost <= balance;
+  const canSubmit = formData.itemName && formData.quantity && formData.unitCost && quantity > 0 && totalCost > 0 && totalCost <= balance;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-colors">
@@ -98,8 +105,9 @@ export const TransactionForm: React.FC = () => {
             type="number"
             min="1"
             value={formData.quantity}
-            onChange={(e) => handleInputChange('quantity', parseInt(e.target.value) || 1)}
+            onChange={(e) => handleInputChange('quantity', e.target.value)}
             required
+            placeholder="Enter quantity"
           />
           
           <Input

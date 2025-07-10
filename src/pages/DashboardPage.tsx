@@ -95,7 +95,12 @@ export const DashboardPage: React.FC = () => {
         'Total Cost': '' 
       });
       
-      deposits.forEach(transaction => {
+      // Sort deposits by date (oldest first)
+      const sortedDeposits = [...deposits].sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+      
+      sortedDeposits.forEach(transaction => {
         data.push({
           Date: format(new Date(transaction.created_at), 'yyyy-MM-dd HH:mm'),
           Item: transaction.item_name,
@@ -134,7 +139,12 @@ export const DashboardPage: React.FC = () => {
         'Total Cost': '' 
       });
       
-      expenses.forEach(transaction => {
+      // Sort expenses by date (oldest first)
+      const sortedExpenses = [...expenses].sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+      
+      sortedExpenses.forEach(transaction => {
         data.push({
           Date: format(new Date(transaction.created_at), 'yyyy-MM-dd HH:mm'),
           Item: transaction.item_name,

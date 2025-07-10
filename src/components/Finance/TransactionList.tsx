@@ -64,10 +64,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   };
 
   const handleDeleteAll = async () => {
-    const transactionsToDelete = searchQuery.trim() ? filteredTransactions : expenseTransactions;
+    const transactionsToDelete = searchQuery.trim() ? filteredTransactions : transactions;
     const confirmMessage = searchQuery.trim() 
       ? `Are you sure you want to delete ${filteredTransactions.length} filtered transactions? This action cannot be undone.`
-      : 'Are you sure you want to delete ALL transactions? This action cannot be undone.';
+      : 'Are you sure you want to delete ALL transactions (including deposits)? This action cannot be undone.';
       
     if (window.confirm(confirmMessage)) {
       for (const transaction of transactionsToDelete) {
@@ -172,7 +172,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Transaction History</h3>
-          {expenseTransactions.length > 0 && (
+          {transactions.length > 0 && (
             <Button
               variant="danger"
               size="sm"
@@ -338,7 +338,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors">
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Transaction History</h3>
-        {expenseTransactions.length > 0 && (
+        {transactions.length > 0 && (
           <Button
             variant="danger"
             size="sm"
