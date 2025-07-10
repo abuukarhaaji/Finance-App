@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Select } from '../ui/Select';
 import { useFinance } from '../../contexts/FinanceContext';
 import { Transaction } from '../../types';
 import { formatCurrency } from '../../lib/utils';
-import { CATEGORIES } from '../../types';
 import toast from 'react-hot-toast';
 
 interface EditTransactionModalProps {
@@ -25,7 +23,6 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     description: '',
     quantity: '',
     unitCost: '',
-    category: 'other',
   });
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState('');
@@ -40,7 +37,6 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         description: transaction.description || '',
         quantity: transaction.quantity.toString(),
         unitCost: transaction.unit_cost.toString(),
-        category: transaction.category,
       });
       setValidationError('');
     }
@@ -86,7 +82,6 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         description: formData.description || null,
         quantity: quantity,
         unit_cost: unitCost,
-        category: formData.category,
       });
       
       onClose();
@@ -163,20 +158,6 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             disabled={loading}
           />
 
-          {transaction.type === 'expense' && (
-            <div className="md:col-span-2">
-              <Select
-                label="Category"
-                value={formData.category}
-                onChange={(value) => handleInputChange('category', value)}
-                options={CATEGORIES.map(cat => ({
-                  value: cat.value,
-                  label: cat.name,
-                  color: cat.color,
-                }))}
-              />
-            </div>
-          )}
         </div>
         
         {/* Cost Summary */}
