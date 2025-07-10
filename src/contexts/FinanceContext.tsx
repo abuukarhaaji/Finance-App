@@ -233,6 +233,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setTransactions(updatedTransactions);
       setBalance(calculateBalance(updatedTransactions));
       saveTransactionsLocally(updatedTransactions);
+      toast.success('Transaction deleted successfully');
     } catch (error: any) {
       console.error('Error deleting transaction:', error);
       
@@ -241,6 +242,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setTransactions(updatedTransactions);
       setBalance(calculateBalance(updatedTransactions));
       saveTransactionsLocally(updatedTransactions);
+      toast.success('Transaction deleted successfully');
+      toast.error('Using offline mode - data saved locally');
     } finally {
       setLoading(false);
     }
