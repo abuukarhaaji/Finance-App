@@ -12,6 +12,7 @@ interface FinanceContextType {
   addTransaction: (transaction: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'total_cost'>) => Promise<void>;
   updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
+  deleteAllTransactions: (transactionsToDelete: Transaction[]) => Promise<void>;
   getSpendingSummary: (startDate?: string, endDate?: string) => Promise<SpendingSummary | null>;
   validateTransaction: (cost: number) => Promise<boolean>;
   generateSampleData: () => Promise<void>;
@@ -232,7 +233,6 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setTransactions(updatedTransactions);
       setBalance(calculateBalance(updatedTransactions));
       saveTransactionsLocally(updatedTransactions);
-      toast.success('Transaction deleted successfully');
     } catch (error: any) {
       console.error('Error deleting transaction:', error);
       
@@ -241,13 +241,55 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setTransactions(updatedTransactions);
       setBalance(calculateBalance(updatedTransactions));
       saveTransactionsLocally(updatedTransactions);
-      toast.success('Transaction deleted successfully');
-      toast.error('Using offline mode - data saved locally');
     } finally {
       setLoading(false);
     }
   };
 
+  const deleteAllTransactions = async (transactionsToDelete: Transaction[]) => {
+    if (!user) {
+      toast.error('Please sign in to delete transactions');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Delete all transactions in batch
+      const transactionIds = transactionsToDelete.map(t => t.id);
+      
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .in('id', transactionIds)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const updatedTransactions = transactions.filter(
+        transaction => !transactionIds.includes(transaction.id)
+      );
+      setTransactions(updatedTransactions);
+      setBalance(calculateBalance(updatedTransactions));
+      saveTransactionsLocally(updatedTransactions);
+      toast.success('All transactions deleted successfully');
+    } catch (error: any) {
+      console.error('Error deleting transactions:', error);
+      
+      // Fallback to localStorage for development
+      const transactionIds = transactionsToDelete.map(t => t.id);
+      const updatedTransactions = transactions.filter(
+        transaction => !transactionIds.includes(transaction.id)
+      );
+      setTransactions(updatedTransactions);
+      setBalance(calculateBalance(updatedTransactions));
+      saveTransactionsLocally(updatedTransactions);
+      toast.success('All transactions deleted successfully');
+      toast.error('Using offline mode - data saved locally');
+    } finally {
+      setLoading(false);
+    }
+  };
   const getSpendingSummary = async (startDate?: string, endDate?: string): Promise<SpendingSummary | null> => {
     try {
       const filteredTransactions = transactions.filter(transaction => {
@@ -384,6 +426,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     addTransaction,
     updateTransaction,
     deleteTransaction,
+    deleteAllTransactions,
     getSpendingSummary,
     validateTransaction,
     generateSampleData,

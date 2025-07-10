@@ -9,6 +9,7 @@ import {
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import { useFinance } from '../../contexts/FinanceContext';
+import toast from 'react-hot-toast';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -27,6 +28,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const [searchType, setSearchType] = useState<'item' | 'amount'>('item');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const { deleteTransaction, balance } = useFinance();
+  const { deleteTransaction, deleteAllTransactions, balance } = useFinance();
 
   // Filter out deposits - only show expenses
   const expenseTransactions = transactions.filter(transaction => transaction.type === 'expense');
@@ -56,6 +58,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const handleDeleteTransaction = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this transaction?')) {
       await deleteTransaction(id);
+      toast.success('Transaction deleted successfully');
       // Reset to page 1 if current page becomes empty
       if (currentTransactions.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
@@ -67,12 +70,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     const transactionsToDelete = searchQuery.trim() ? filteredTransactions : transactions;
     const confirmMessage = searchQuery.trim() 
       ? `Are you sure you want to delete ${filteredTransactions.length} filtered transactions? This action cannot be undone.`
-      : 'Are you sure you want to delete ALL transactions (including deposits)? This action cannot be undone.';
+      : 'Are you sure you want to delete ALL transactions? This action cannot be undone.';
       
     if (window.confirm(confirmMessage)) {
-      for (const transaction of transactionsToDelete) {
-        await deleteTransaction(transaction.id);
-      }
+      await deleteAllTransactions(transactionsToDelete);
       setCurrentPage(1);
     }
   };
