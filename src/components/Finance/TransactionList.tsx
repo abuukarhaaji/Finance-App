@@ -29,6 +29,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'item' | 'amount'>('item');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [activeTab, setActiveTab] = useState<'spending' | 'deposits'>('spending');
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -45,11 +46,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
   const { deleteTransaction, deleteAllTransactions, balance } = useFinance();
 
-  // Filter out deposits - only show expenses
-  const expenseTransactions = transactions.filter(transaction => transaction.type === 'expense');
+  // Filter transactions based on active tab
+  const tabFilteredTransactions = transactions.filter(transaction => 
+    activeTab === 'spending' ? transaction.type === 'expense' : transaction.type === 'deposit'
+  );
 
   // Apply search filter
-  const filteredTransactions = expenseTransactions.filter(transaction => {
+  const filteredTransactions = tabFilteredTransactions.filter(transaction => {
     if (!searchQuery.trim()) return true;
     
     if (searchType === 'item') {
@@ -129,6 +132,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     setCurrentPage(1); // Reset to first page when searching
   };
 
+  const handleTabChange = (tab: 'spending' | 'deposits') => {
+    setActiveTab(tab);
+    setSearchQuery(''); // Clear search when switching tabs
+    setCurrentPage(1); // Reset to first page
+  };
+
   const toggleSection = (monthYear: string) => {
     const newCollapsed = new Set(collapsedSections);
     if (newCollapsed.has(monthYear)) {
@@ -206,8 +215,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     );
   }
 
-  // Show "no results" message when search returns empty
-  if (filteredTransactions.length === 0 && searchQuery.trim() && expenseTransactions.length > 0) {
+  // Show "no results" message when search returns empty but we have transactions in this tab
+  if (filteredTransactions.length === 0 && searchQuery.trim() && tabFilteredTransactions.length > 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
@@ -223,6 +232,32 @@ export const TransactionList: React.FC<TransactionListProps> = ({
               <span>Delete All</span>
             </Button>
           )}
+        </div>
+        
+        {/* Tabs */}
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <button
+              onClick={() => handleTabChange('spending')}
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'spending'
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              Spending ({transactions.filter(t => t.type === 'expense').length})
+            </button>
+            <button
+              onClick={() => handleTabChange('deposits')}
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'deposits'
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              Deposits ({transactions.filter(t => t.type === 'deposit').length})
+            </button>
+          </div>
         </div>
         
         {/* Search Controls */}
@@ -356,7 +391,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           {/* Search Results Info */}
           {searchQuery.trim() && (
             <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-              Showing {filteredTransactions.length} of {expenseTransactions.length} transactions
+              Showing {filteredTransactions.length} of {tabFilteredTransactions.length} transactions
             </div>
           )}
         </div>
@@ -374,7 +409,6 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     );
   }
 
-  // Show "no expense results" message when search returns empty but we have expenses
   if (filteredTransactions.length === 0 && searchQuery.trim()) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors">
@@ -393,6 +427,32 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           )}
         </div>
         
+        {/* Tabs */}
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <button
+              onClick={() => handleTabChange('spending')}
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'spending'
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              Spending ({transactions.filter(t => t.type === 'expense').length})
+            </button>
+            <button
+              onClick={() => handleTabChange('deposits')}
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'deposits'
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              Deposits ({transactions.filter(t => t.type === 'deposit').length})
+            </button>
+          </div>
+        </div>
+        
         {/* Search Controls */}
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           {/* Mobile Layout - Stacked */}
@@ -524,7 +584,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           {/* Search Results Info */}
           {searchQuery.trim() && (
             <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-              Showing {filteredTransactions.length} of {expenseTransactions.length} transactions
+              Showing {filteredTransactions.length} of {tabFilteredTransactions.length} transactions
             </div>
           )}
         </div>
@@ -557,6 +617,32 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             <span>{searchQuery.trim() ? `Delete Filtered (${filteredTransactions.length})` : 'Delete All'}</span>
           </Button>
         )}
+      </div>
+      
+      {/* Tabs */}
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+          <button
+            onClick={() => handleTabChange('spending')}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              activeTab === 'spending'
+                ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            Spending ({transactions.filter(t => t.type === 'expense').length})
+          </button>
+          <button
+            onClick={() => handleTabChange('deposits')}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              activeTab === 'deposits'
+                ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            Deposits ({transactions.filter(t => t.type === 'deposit').length})
+          </button>
+        </div>
       </div>
       
       {/* Search Controls */}
@@ -690,7 +776,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         {/* Search Results Info */}
         {searchQuery.trim() && (
           <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-            Showing {filteredTransactions.length} of {expenseTransactions.length} transactions
+            Showing {filteredTransactions.length} of {tabFilteredTransactions.length} transactions
           </div>
         )}
       </div>
@@ -749,8 +835,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                       {transaction.quantity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <span className="text-red-600">
-                        -{formatCurrency(transaction.total_cost)}
+                      <span className={transaction.type === 'expense' ? 'text-red-600' : 'text-green-600'}>
+                        {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.total_cost)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
@@ -779,28 +865,30 @@ export const TransactionList: React.FC<TransactionListProps> = ({
               </React.Fragment>
             ))}
             
-            {/* Balance Row */}
-            <tr className="bg-blue-50 dark:bg-blue-900 border-t-2 border-blue-200 dark:border-blue-700">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-bold text-blue-900 dark:text-blue-100">
-                  Current Balance
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
-                -
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                <span className={`${balance <= 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  {formatCurrency(balance)}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
-                -
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
-                -
-              </td>
-            </tr>
+            {/* Balance Row - Only show on spending tab */}
+            {activeTab === 'spending' && (
+              <tr className="bg-blue-50 dark:bg-blue-900 border-t-2 border-blue-200 dark:border-blue-700">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm font-bold text-blue-900 dark:text-blue-100">
+                    Current Balance
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
+                  -
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
+                  <span className={`${balance <= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {formatCurrency(balance)}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
+                  -
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
+                  -
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
