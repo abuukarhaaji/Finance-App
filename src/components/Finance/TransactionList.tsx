@@ -46,13 +46,15 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
   const { deleteTransaction, deleteAllTransactions, balance } = useFinance();
 
-  // Filter transactions based on active tab
-  const tabFilteredTransactions = transactions.filter(transaction => 
-    activeTab === 'spending' ? transaction.type === 'expense' : transaction.type === 'deposit'
-  );
+  // Separate transactions by type
+  const expenseTransactions = transactions.filter(transaction => transaction.type === 'expense');
+  const depositTransactions = transactions.filter(transaction => transaction.type === 'deposit');
+  
+  // Get current tab transactions
+  const currentTabTransactions = activeTab === 'spending' ? expenseTransactions : depositTransactions;
 
   // Apply search filter
-  const filteredTransactions = tabFilteredTransactions.filter(transaction => {
+  const filteredTransactions = currentTabTransactions.filter(transaction => {
     if (!searchQuery.trim()) return true;
     
     if (searchType === 'item') {
@@ -131,11 +133,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     setSearchQuery(value);
     setCurrentPage(1); // Reset to first page when searching
   };
-
+  
   const handleTabChange = (tab: 'spending' | 'deposits') => {
     setActiveTab(tab);
     setSearchQuery(''); // Clear search when switching tabs
-    setCurrentPage(1); // Reset to first page
+    setCurrentPage(1); // Reset to first page when switching tabs
   };
 
   const toggleSection = (monthYear: string) => {
@@ -215,8 +217,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     );
   }
 
-  // Show "no results" message when search returns empty but we have transactions in this tab
-  if (filteredTransactions.length === 0 && searchQuery.trim() && tabFilteredTransactions.length > 0) {
+  // Show "no results" message when search returns empty
+  if (filteredTransactions.length === 0 && searchQuery.trim() && currentTabTransactions.length > 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
@@ -236,26 +238,26 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         
         {/* Tabs */}
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
             <button
               onClick={() => handleTabChange('spending')}
-              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                 activeTab === 'spending'
                   ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               }`}
             >
-              Spending ({transactions.filter(t => t.type === 'expense').length})
+              Spending ({expenseTransactions.length})
             </button>
             <button
               onClick={() => handleTabChange('deposits')}
-              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                 activeTab === 'deposits'
                   ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               }`}
             >
-              Deposits ({transactions.filter(t => t.type === 'deposit').length})
+              Deposits ({depositTransactions.length})
             </button>
           </div>
         </div>
@@ -391,7 +393,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           {/* Search Results Info */}
           {searchQuery.trim() && (
             <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-              Showing {filteredTransactions.length} of {tabFilteredTransactions.length} transactions
+              Showing {filteredTransactions.length} of {currentTabTransactions.length} transactions
             </div>
           )}
         </div>
@@ -409,7 +411,8 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     );
   }
 
-  if (filteredTransactions.length === 0 && searchQuery.trim()) {
+  // Show "no expense results" message when search returns empty but we have expenses
+  if (filteredTransactions.length === 0 && currentTabTransactions.length === 0 && activeTab === 'spending') {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
@@ -429,174 +432,95 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         
         {/* Tabs */}
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
             <button
               onClick={() => handleTabChange('spending')}
-              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                 activeTab === 'spending'
                   ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               }`}
             >
-              Spending ({transactions.filter(t => t.type === 'expense').length})
+              Spending ({expenseTransactions.length})
             </button>
             <button
               onClick={() => handleTabChange('deposits')}
-              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                 activeTab === 'deposits'
                   ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               }`}
             >
-              Deposits ({transactions.filter(t => t.type === 'deposit').length})
+              Deposits ({depositTransactions.length})
             </button>
           </div>
         </div>
         
-        {/* Search Controls */}
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          {/* Mobile Layout - Stacked */}
-          <div className="md:hidden space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Search by:
-              </label>
-              <div className="relative">
-                <button
-                  onClick={() => setShowSearchDropdown(!showSearchDropdown)}
-                  className="flex items-center justify-between w-32 px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  <span className="capitalize">{searchType}</span>
-                  <ChevronDownIcon className={`h-4 w-4 transition-transform ${showSearchDropdown ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {showSearchDropdown && (
-                  <div className="absolute right-0 z-10 w-32 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
-                    <button
-                      onClick={() => handleSearchTypeChange('item')}
-                      className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 first:rounded-t-lg ${
-                        searchType === 'item' ? 'bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'
-                      }`}
-                    >
-                      Item
-                    </button>
-                    <button
-                      onClick={() => handleSearchTypeChange('amount')}
-                      className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 last:rounded-b-lg ${
-                        searchType === 'amount' ? 'bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'
-                      }`}
-                    >
-                      Amount
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Search Input for Mobile */}
-            <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type={searchType === 'amount' ? 'number' : 'text'}
-                placeholder={searchType === 'item' ? 'Search by item name...' : 'Search by exact amount...'}
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-                step={searchType === 'amount' ? '0.01' : undefined}
-                min={searchType === 'amount' ? '0' : undefined}
-              />
-              {searchQuery.trim() && (
-                <button
-                  onClick={() => handleSearchChange('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
+        <div className="p-8 text-center">
+          <div className="text-gray-400 dark:text-gray-500 mb-4">
+            <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
           </div>
-          
-          {/* Desktop Layout - Same Line */}
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                Search by:
-              </label>
-              <div className="relative">
-                <button
-                  onClick={() => setShowSearchDropdown(!showSearchDropdown)}
-                  className="flex items-center justify-between w-32 px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  <span className="capitalize">{searchType}</span>
-                  <ChevronDownIcon className={`h-4 w-4 transition-transform ${showSearchDropdown ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {showSearchDropdown && (
-                  <div className="absolute right-0 z-10 w-32 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
-                    <button
-                      onClick={() => handleSearchTypeChange('item')}
-                      className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 first:rounded-t-lg ${
-                        searchType === 'item' ? 'bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'
-                      }`}
-                    >
-                      Item
-                    </button>
-                    <button
-                      onClick={() => handleSearchTypeChange('amount')}
-                      className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 last:rounded-b-lg ${
-                        searchType === 'amount' ? 'bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'
-                      }`}
-                    >
-                      Amount
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Search Input for Desktop - Same Line */}
-            <div className="relative flex-1">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type={searchType === 'amount' ? 'number' : 'text'}
-                placeholder={searchType === 'item' ? 'Search by item name...' : 'Search by exact amount...'}
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-                step={searchType === 'amount' ? '0.01' : undefined}
-                min={searchType === 'amount' ? '0' : undefined}
-              />
-              {searchQuery.trim() && (
-                <button
-                  onClick={() => handleSearchChange('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-          
-          {/* Search Results Info */}
-          {searchQuery.trim() && (
-            <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-              Showing {filteredTransactions.length} of {tabFilteredTransactions.length} transactions
-            </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No spending transactions yet</h3>
+          <p className="text-gray-500 dark:text-gray-400">Start by adding your first expense!</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (filteredTransactions.length === 0 && currentTabTransactions.length === 0 && activeTab === 'deposits') {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-colors">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Transaction History</h3>
+          {transactions.length > 0 && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleDeleteAll}
+              className="flex items-center space-x-2"
+            >
+              <TrashIcon className="h-4 w-4" />
+              <span>Delete All</span>
+            </Button>
           )}
+        </div>
+        
+        {/* Tabs */}
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+            <button
+              onClick={() => handleTabChange('spending')}
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                activeTab === 'spending'
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              Spending ({expenseTransactions.length})
+            </button>
+            <button
+              onClick={() => handleTabChange('deposits')}
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                activeTab === 'deposits'
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              Deposits ({depositTransactions.length})
+            </button>
+          </div>
         </div>
         
         <div className="p-8 text-center">
           <div className="text-gray-400 dark:text-gray-500 mb-4">
-            <MagnifyingGlassIcon className="mx-auto h-12 w-12" />
+            <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m-3-2.757l.879.879 1.414-1.414L9.879 13.24l-1.414 1.414zm4.242 0l1.414-1.414L13.24 9.879l-1.414 1.414L13.24 12.707z" />
+            </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No results found</h3>
-          <p className="text-gray-500 dark:text-gray-400">
-            No transactions match your search for "{searchQuery}"
-          </p>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No deposits yet</h3>
+          <p className="text-gray-500 dark:text-gray-400">Add funds to get started!</p>
         </div>
       </div>
     );
@@ -621,26 +545,26 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       
       {/* Tabs */}
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
           <button
             onClick={() => handleTabChange('spending')}
-            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
               activeTab === 'spending'
                 ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
             }`}
           >
-            Spending ({transactions.filter(t => t.type === 'expense').length})
+            Spending ({expenseTransactions.length})
           </button>
           <button
             onClick={() => handleTabChange('deposits')}
-            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
               activeTab === 'deposits'
                 ? 'bg-white dark:bg-gray-800 text-blue-600 shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
             }`}
           >
-            Deposits ({transactions.filter(t => t.type === 'deposit').length})
+            Deposits ({depositTransactions.length})
           </button>
         </div>
       </div>
@@ -776,7 +700,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         {/* Search Results Info */}
         {searchQuery.trim() && (
           <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-            Showing {filteredTransactions.length} of {tabFilteredTransactions.length} transactions
+            Showing {filteredTransactions.length} of {currentTabTransactions.length} transactions
           </div>
         )}
       </div>
@@ -865,29 +789,29 @@ export const TransactionList: React.FC<TransactionListProps> = ({
               </React.Fragment>
             ))}
             
-            {/* Balance Row - Only show on spending tab */}
+            {/* Balance Row */}
             {activeTab === 'spending' && (
               <tr className="bg-blue-50 dark:bg-blue-900 border-t-2 border-blue-200 dark:border-blue-700">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-bold text-blue-900 dark:text-blue-100">
-                    Current Balance
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
-                  -
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                  <span className={`${balance <= 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    {formatCurrency(balance)}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
-                  -
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
-                  -
-                </td>
-              </tr>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-bold text-blue-900 dark:text-blue-100">
+                  Current Balance
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
+                -
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
+                <span className={`${balance <= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  {formatCurrency(balance)}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
+                -
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-900 dark:text-blue-100">
+                -
+              </td>
+            </tr>
             )}
           </tbody>
         </table>
@@ -897,7 +821,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700 dark:text-gray-300">
-              Showing {startIndex + 1} to {Math.min(endIndex, filteredTransactions.length)} of {filteredTransactions.length} transactions
+              Showing {startIndex + 1} to {Math.min(endIndex, filteredTransactions.length)} of {filteredTransactions.length} {activeTab === 'spending' ? 'expenses' : 'deposits'}
             </div>
             
             {/* Numbered Pagination */}
