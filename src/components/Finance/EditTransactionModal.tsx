@@ -42,9 +42,11 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     }
   }, [transaction]);
 
-  const quantity = parseInt(formData.quantity) || 0;
+  // For deposits, we only edit the total amount (treat as quantity=1, unitCost=amount)
+  const isDeposit = transaction?.type === 'deposit';
+  const quantity = isDeposit ? 1 : (parseInt(formData.quantity) || 0);
   const unitCost = parseFloat(formData.unitCost || '0');
-  const totalCost = quantity * unitCost;
+  const totalCost = isDeposit ? unitCost : (quantity * unitCost);
   const originalCost = transaction ? transaction.total_cost : 0;
   const costDifference = totalCost - originalCost;
   const newBalance = balance - costDifference;
@@ -54,7 +56,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     
     if (!transaction) return;
     
-    if (quantity <= 0) {
+    if (!isDeposit && quantity <= 0) {
       toast.error('Please enter a valid quantity');
       return;
     }
@@ -79,8 +81,8 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     try {
       await updateTransaction(transaction.id, {
         item_name: formData.itemName,
-        description: formData.description || null,
-        quantity: quantity,
+        description: isDeposit ? '' : (formData.description || null),
+        quantity: isDeposit ? 1 : quantity,
         unit_cost: unitCost,
       });
       
@@ -104,61 +106,88 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
     setValidationError('');
   };
 
-  const canSubmit = formData.itemName && formData.quantity && formData.unitCost && 
-                   quantity > 0 && totalCost > 0 && 
+  const canSubmit = formData.itemName && formData.unitCost && 
+                   (!isDeposit ? (formData.quantity && quantity > 0) : true) && 
+                   totalCost > 0 && 
                    (transaction?.type === 'deposit' || newBalance >= 0);
 
   if (!transaction) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Edit Transaction" maxWidth="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} title={`Edit ${isDeposit ? 'Deposit' : 'Transaction'}`} maxWidth="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="md:col-span-2">
+        {isDeposit ? (
+          // Simplified form for deposits - only item name and amount
+          <div className="space-y-6">
             <Input
-              label="Item Name"
+              label="Deposit Name"
               value={formData.itemName}
               onChange={(e) => handleInputChange('itemName', e.target.value)}
               required
-              placeholder="What did you buy?"
+              placeholder="e.g., Salary, Gift, etc."
               disabled={loading}
             />
-          </div>
-          
-          <div className="md:col-span-2">
+            
             <Input
-              label="Description (Optional)"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Add a description..."
+              label="Amount"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.unitCost}
+              onChange={(e) => handleInputChange('unitCost', e.target.value)}
+              required
+              placeholder="0.00"
               disabled={loading}
             />
           </div>
-          
-          <Input
-            label="Quantity"
-            type="number"
-            min="1"
-            value={formData.quantity}
-            onChange={(e) => handleInputChange('quantity', e.target.value)}
-            required
-            placeholder="Enter quantity"
-            disabled={loading}
-          />
-          
-          <Input
-            label="Unit Cost"
-            type="number"
-            min="0"
-            step="0.01"
-            value={formData.unitCost}
-            onChange={(e) => handleInputChange('unitCost', e.target.value)}
-            required
-            placeholder="0.00"
-            disabled={loading}
-          />
-
-        </div>
+        ) : (
+          // Full form for expenses
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <Input
+                label="Item Name"
+                value={formData.itemName}
+                onChange={(e) => handleInputChange('itemName', e.target.value)}
+                required
+                placeholder="What did you buy?"
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="md:col-span-2">
+              <Input
+                label="Description (Optional)"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Add a description..."
+                disabled={loading}
+              />
+            </div>
+            
+            <Input
+              label="Quantity"
+              type="number"
+              min="1"
+              value={formData.quantity}
+              onChange={(e) => handleInputChange('quantity', e.target.value)}
+              required
+              placeholder="Enter quantity"
+              disabled={loading}
+            />
+            
+            <Input
+              label="Unit Cost"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.unitCost}
+              onChange={(e) => handleInputChange('unitCost', e.target.value)}
+              required
+              placeholder="0.00"
+              disabled={loading}
+            />
+          </div>
+        )}
         
         {/* Cost Summary */}
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-3 transition-colors">
@@ -170,7 +199,9 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
           </div>
           
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">New Total Cost:</span>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              {isDeposit ? 'New Amount:' : 'New Total Cost:'}
+            </span>
             <span className={`text-lg font-bold ${totalCost > balance && transaction.type === 'expense' && costDifference > 0 ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
               {formatCurrency(totalCost)}
             </span>
@@ -179,7 +210,10 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
           {costDifference !== 0 && (
             <div className="flex justify-between items-center border-t border-gray-200 dark:border-gray-600 pt-3">
               <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {costDifference > 0 ? 'Additional Cost:' : 'Cost Reduction:'}
+                {isDeposit 
+                  ? (costDifference > 0 ? 'Additional Deposit:' : 'Deposit Reduction:')
+                  : (costDifference > 0 ? 'Additional Cost:' : 'Cost Reduction:')
+                }
               </span>
               <span className={`text-sm font-bold ${costDifference > 0 ? 'text-red-600' : 'text-green-600'}`}>
                 {costDifference > 0 ? '+' : ''}{formatCurrency(costDifference)}
@@ -187,7 +221,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             </div>
           )}
           
-          {transaction.type === 'expense' && (
+          {!isDeposit && (
             <div className="flex justify-between items-center border-t border-gray-200 dark:border-gray-600 pt-3">
               <span className="text-sm font-medium text-gray-600 dark:text-gray-400">New Balance:</span>
               <span className={`text-sm font-bold ${newBalance < 0 ? 'text-red-600' : 'text-green-600'}`}>
@@ -216,7 +250,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             disabled={!canSubmit}
             className="flex-1"
           >
-            Update Transaction
+            Update {isDeposit ? 'Deposit' : 'Transaction'}
           </Button>
           <Button
             type="button"
